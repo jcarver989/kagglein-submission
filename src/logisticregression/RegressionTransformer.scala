@@ -2,32 +2,35 @@
 
 package logisticregression
 
-import data.TrainingExample
 import data.Features
 import data.Features.features
+import data.TrainingExample
 import data.Transformer
+import data.Util
 
-case class MinMax(min: Double, max: Double) {
-  def +(other: MinMax): MinMax = {
-    MinMax(
-      if (other.min < min) other.min else min,
-      if (other.max > max) other.max else max)
-  }
-}
-
-object MinMax {
-  def apply(n: Double): MinMax = {
-    MinMax(n, n)
-  }
-}
 
 class RegressionTransformer extends Transformer[Double] {
   import data.Features._
 
-  val throwAwayFeatures = Set[Int](fnlwgt)
+  val featuresToInclude = Set[Int](
+    age,
+    employment,
+    //fnlwgt,
+    education,
+    //educationNum,
+    //maritalStatus,
+    occupation,
+    //relationship,
+    //race,
+    sex,
+    capitalGain,
+    capitalLoss,
+    hoursPerWeek
+    //nativeCountry
+  )
 
   override def transformFeatures(examples: Vector[Vector[String]]): Vector[Vector[Double]] = {
-    normalizeFeatures(examples.map { transformFeatureVector })
+    Util.normalizeFeatures(examples.map { transformFeatureVector })
   }
 
   override def transform(examples: Vector[TrainingExample[String]]): Vector[TrainingExample[Double]] = {
@@ -36,50 +39,12 @@ class RegressionTransformer extends Transformer[Double] {
       TrainingExample(features = regressionFeatures, label = e.label)
     }
 
-    normalizeTraining(transformed)
-  }
-
-  private def normalizeFeatures(data: Vector[Vector[Double]]): Vector[Vector[Double]] = {
-    val minMaxMap = {
-      val map = scala.collection.mutable.Map[Int, MinMax]()
-      for {
-        example <- data
-        (feature, index) <- example.zipWithIndex
-      } {
-        map(index) = (MinMax(feature) + map.getOrElse(index, MinMax(feature)))
-      }
-      map.toMap
-    }
-
-    data.map { features => normalize(minMaxMap, features) }
-  }
-
-  private def normalizeTraining(data: Vector[TrainingExample[Double]]): Vector[TrainingExample[Double]] = {
-    val minMaxMap = {
-      val map = scala.collection.mutable.Map[Int, MinMax]()
-      for {
-        example <- data
-        (feature, index) <- example.features.zipWithIndex
-      } {
-        map(index) = (MinMax(feature) + map.getOrElse(index, MinMax(feature)))
-      }
-      map.toMap
-    }
-
-    data.map { example => example.copy(features = normalize(minMaxMap, example.features)) }
-  }
-
-  private def normalize(minMaxMap: Map[Int, MinMax], featureValues: Vector[Double]): Vector[Double] = {
-    featureValues.zipWithIndex.map {
-      case (f, i) =>
-        val minMax = minMaxMap(i)
-        (f - minMax.min) / (minMax.max - minMax.min)
-    }
+    Util.normalizeTraining(transformed)
   }
 
   private def transformFeatureVector(featureValues: Vector[String]): Vector[Double] = {
     featureValues.zipWithIndex.collect {
-      case (featureValue, index) if !throwAwayFeatures.contains(index) => features(index) match {
+      case (featureValue, index) if featuresToInclude.contains(index) => features(index) match {
         case NumericFeature => Vector(featureValue.toDouble)
         case c: CategoricalFeature => c.dummyEncode(featureValue)
       }

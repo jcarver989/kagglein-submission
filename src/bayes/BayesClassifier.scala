@@ -31,11 +31,11 @@ case class BayesClassifier(
 object BayesTrainer extends ClassifierTrainer[String] {
   override def train(examples: Vector[TrainingExample[String]]): BayesClassifier = {
     val totalSize = examples.size.toDouble
-    val labelCounts = aggregateByKey(examples.map { _.label -> 1 })
+    val labelCounts = aggregateByKey(examples.collect { case TrainingExample(_, Some(label)) => label -> 1 })
     val pLabel = labelCounts.map { case (k, v) => k -> v / totalSize }
 
     val freqs = for {
-      TrainingExample(features, label) <- examples
+      TrainingExample(features, Some(label)) <- examples
       (featureValue, featureIndex) <- features.zipWithIndex
       if !featureValue.contains("?")
     } yield LabelAndFeature(label, featureIndex, featureValue) -> 1

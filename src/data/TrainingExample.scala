@@ -3,7 +3,7 @@ package data
 
 import scala.io.Source
 
-case class TrainingExample[T](features: Vector[T], label: String)
+case class TrainingExample[T](features: Vector[T], label: Option[String] = None)
 
 object TrainingExample {
   def fromFile(filePath: String): Vector[TrainingExample[String]] = {
@@ -14,7 +14,7 @@ object TrainingExample {
   def fromData(data: Iterable[String]): Vector[TrainingExample[String]] = {
     data.map { l =>
       val columns = l.split("\t")
-      TrainingExample(label = columns.last, features = columns.dropRight(1).toVector)
+      TrainingExample(label = Some(columns.last), features = columns.dropRight(1).toVector)
     }.toVector
   }
 }

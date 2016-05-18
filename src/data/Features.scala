@@ -3,13 +3,18 @@ package data
 import scala.Vector
 
 object Features {
-  sealed trait Feature
-  case class CategoricalFeature(possibleValues: Set[String]) extends Feature {
-    val valuesVector = possibleValues.toVector
-    val map = possibleValues.toVector.zipWithIndex.map { case (value, index) => value -> (index + 1.0) }.toMap
+  sealed trait Feature {
+    def isNumeric(): Boolean
+  }
+
+  case class CategoricalFeature(values: Map[String, String]) extends Feature {
+    val valuesVector = values.values.toVector
+
+    override def isNumeric(): Boolean = false
 
     def dummyEncode(value: String): Vector[Double] = {
-      val index = valuesVector.indexOf(value)
+      val mappedValue = values(value)
+      val index = valuesVector.indexOf(mappedValue)
       valuesVector.zipWithIndex.map {
         case (v, i) if i == index => 1.0
         case _ => 0.0
@@ -17,136 +22,138 @@ object Features {
     }
   }
 
-  case object NumericFeature extends Feature
+  case object NumericFeature extends Feature {
+    override def isNumeric(): Boolean = true
+  }
 
-  val employmentValues = CategoricalFeature(Set(
-    "Private",
-    "Self-emp-not-inc",
-    "Self-emp-inc",
-    "Federal-gov",
-    "Local-gov",
-    "State-gov",
-    "Without-pay",
-    "Never-worked",
-    "?"
+  val employmentValues = CategoricalFeature(Map(
+    "Private" -> "non gov",
+    "Self-emp-not-inc" -> "self",
+    "Self-emp-inc" -> "self",
+    "Federal-gov" -> "fed-gov",
+    "Local-gov" -> "gov",
+    "State-gov" -> "gov",
+    "Without-pay" -> "unemp",
+    "Never-worked" -> "enemp",
+    "?" -> "non gov"
   ))
 
-  val educationValues = CategoricalFeature(Set(
-    "Bachelors",
-    "Some-college",
-    "11th",
-    "HS-grad",
-    "Prof-school",
-    "Assoc-acdm",
-    "Assoc-voc",
-    "9th",
-    "7th-8th",
-    "12th",
-    "Masters",
-    "1st-4th",
-    "10th",
-    "Doctorate",
-    "5th-6th",
-    "Preschool",
-    "?"))
+  val educationValues = CategoricalFeature(Map(
+    "Bachelors" -> "undergrad",
+    "Some-college" -> "some college",
+    "11th" -> "no college",
+    "HS-grad" -> "no college",
+    "Prof-school" -> "some college",
+    "Assoc-acdm" -> "some college",
+    "Assoc-voc" -> "some college",
+    "9th" -> "no college",
+    "7th-8th" -> "no college",
+    "12th" -> "no college",
+    "Masters" -> "masters",
+    "1st-4th" -> "no college",
+    "10th" -> "no college",
+    "Doctorate" -> "doctorate",
+    "5th-6th" -> "no college",
+    "Preschool" -> "no college",
+    "?" -> "no college"))
 
-  val maritalStatusValues = CategoricalFeature(Set(
-    "Married-civ-spouse",
-    "Divorced",
-    "Never-married",
-    "Separated",
-    "Widowed",
-    "Married-spouse-absent",
-    "Married-AF-spouse",
-    "?"
+  val maritalStatusValues = CategoricalFeature(Map(
+    "Married-civ-spouse" -> "married",
+    "Divorced" -> "not married",
+    "Never-married" -> "not married",
+    "Separated" -> "not married",
+    "Widowed" -> "not married",
+    "Married-spouse-absent" -> "not married",
+    "Married-AF-spouse" -> "married",
+    "?" -> "not marrried"
   ))
 
-  val occupationValues = CategoricalFeature(Set(
-    "Tech-support",
-    "Craft-repair",
-    "Other-service",
-    "Sales",
-    "Exec-managerial",
-    "Prof-specialty",
-    "Handlers-cleaners",
-    "Machine-op-inspct",
-    "Adm-clerical",
-    "Farming-fishing",
-    "Transport-moving",
-    "Priv-house-serv",
-    "Protective-serv",
-    "Armed-Forces",
-    "?"
+  val occupationValues = CategoricalFeature(Map(
+    "Tech-support" -> "bluecollar",
+    "Craft-repair" -> "bluecollar",
+    "Other-service" -> "other",
+    "Sales" -> "whitecollar",
+    "Exec-managerial" -> "whitecollar",
+    "Prof-specialty" -> "specialty",
+    "Handlers-cleaners" -> "service",
+    "Machine-op-inspct" -> "bluecollar",
+    "Adm-clerical" -> "whitecollar",
+    "Farming-fishing" -> "farming",
+    "Transport-moving" -> "bluecollar",
+    "Priv-house-serv" -> "service",
+    "Protective-serv" -> "service",
+    "Armed-Forces" -> "army",
+    "?" -> "bluecollar"
   ))
 
-  val relationshipValues = CategoricalFeature(Set(
-    "Wife",
-    "Own-child",
-    "Husband",
-    "Not-in-family",
-    "Other-relative",
-    "Unmarried",
-    "?"
+  val relationshipValues = CategoricalFeature(Map(
+    "Wife" -> "wife",
+    "Own-child" -> "child",
+    "Husband" -> "husband",
+    "Not-in-family" -> "other",
+    "Other-relative" -> "other",
+    "Unmarried" -> "other",
+    "?" -> "other"
   ))
 
-  val raceValues = CategoricalFeature(Set(
-    "White",
-    "Asian-Pac-Islander",
-    "Amer-Indian-Eskimo",
-    "Other",
-    "Black",
-    "?"
+  val raceValues = CategoricalFeature(Map(
+    "White" -> "white",
+    "Asian-Pac-Islander" -> "asian",
+    "Amer-Indian-Eskimo" -> "indian",
+    "Other" -> "other",
+    "Black" -> "black",
+    "?" -> "other"
   ))
 
-  val sexValues = CategoricalFeature(Set(
-    "Male",
-    "Female",
-    "?"
+  val sexValues = CategoricalFeature(Map(
+    "Male" -> "male",
+    "Female" -> "female",
+    "?" -> "other"
   ))
 
-  val nativeCountryValues = CategoricalFeature(Set(
-    "United-States",
-    "Cambodia",
-    "England",
-    "Puerto-Rico",
-    "Canada",
-    "Germany",
-    "Outlying-US(Guam-USVI-etc)",
-    "India",
-    "Japan",
-    "Greece",
-    "South",
-    "China",
-    "Cuba",
-    "Iran",
-    "Honduras",
-    "Philippines",
-    "Italy",
-    "Poland",
-    "Jamaica",
-    "Vietnam",
-    "Mexico",
-    "Portugal",
-    "Ireland",
-    "France",
-    "Dominican-Republic",
-    "Laos",
-    "Ecuador",
-    "Taiwan",
-    "Haiti",
-    "Columbia",
-    "Hungary",
-    "Guatemala",
-    "Nicaragua",
-    "Scotland",
-    "Thailand",
-    "Yugoslavia",
-    "El-Salvador",
-    "Trinadad&Tobago",
-    "Peru",
-    "Hong",
-    "Holand-Netherlands",
-    "?"
+  val nativeCountryValues = CategoricalFeature(Map(
+    "United-States" -> "us",
+    "Cambodia" -> "asia",
+    "England" -> "europe",
+    "Puerto-Rico" -> "central-america",
+    "Canada" -> "north-america",
+    "Germany" -> "europe",
+    "Outlying-US(Guam-USVI-etc)" -> "other",
+    "India" -> "india",
+    "Japan" -> "asia",
+    "Greece" -> "europe",
+    "South" -> "other",
+    "China" -> "asia",
+    "Cuba" -> "central-america",
+    "Iran" -> "middle-east",
+    "Honduras" -> "central-america",
+    "Philippines" -> "asia",
+    "Italy" -> "europe",
+    "Poland" -> "europe",
+    "Jamaica" -> "other",
+    "Vietnam" -> "asia",
+    "Mexico" -> "central-america",
+    "Portugal" -> "europe",
+    "Ireland" -> "europe",
+    "France" -> "europe",
+    "Dominican-Republic" -> "central-america",
+    "Laos" -> "asia",
+    "Ecuador" -> "central-america",
+    "Taiwan" -> "asia",
+    "Haiti" -> "central-america",
+    "Columbia" -> "central-america",
+    "Hungary" -> "europe",
+    "Guatemala" -> "central-america",
+    "Nicaragua" -> "central-america",
+    "Scotland" -> "europe",
+    "Thailand" -> "asia",
+    "Yugoslavia" -> "europe",
+    "El-Salvador" -> "central-america",
+    "Trinadad&Tobago" -> "europe",
+    "Peru" -> "central-america",
+    "Hong" -> "asia",
+    "Holand-Netherlands" -> "europe",
+    "?" -> "other"
   ))
 
   val age = 0
