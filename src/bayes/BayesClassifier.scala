@@ -21,9 +21,13 @@ case class BayesClassifier(
     val pClassification =
       probabilities
         .groupBy(_._1)
-        .map { case (label, pFeature) => label -> pLabel(label) * pFeature.map(_._2).reduce { _ * _ } }
-        .toVector
+        .map {
+          case (label, pFeature) => label -> {
+            math.log(pLabel(label)) + pFeature.map(_._2).map { math.log }.sum
+          }
+        }.toVector
 
+    //println(pClassification)
     pClassification.sortBy { _._2 * -1 }.head._1
   }
 }

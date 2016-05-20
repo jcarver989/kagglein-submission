@@ -22,10 +22,7 @@ class TrainingSetRunner() {
     val (correct, incorrect) = test
       .map {
         case (e, _) =>
-          val guess = classifier.classify(e.features) 
-          if (guess != e.label.get)  {
-            println(e.features, e.label)
-          }
+          val guess = classifier.classify(e.features)
           guess == e.label.get
       }
       .partition { wasCorrect => wasCorrect }
