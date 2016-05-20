@@ -3,6 +3,7 @@ package logisticregression
 import data.TrainingExample
 import main.Classifier
 import main.ClassifierTrainer
+import scala.collection.parallel.immutable.ParVector
 
 object Math {
   def sigmoid(weights: Vector[Double], features: Vector[Double]): Double = {
@@ -28,16 +29,17 @@ class LogisticRegressionTrainer(
 
   override def train(examples: Vector[TrainingExample[Double]]): LogisticRegressionClassifier = {
     // append 1's to features to make intercept term consistent with rest of features
-    val trainingData = examples.map { e => e.copy(features = 1.0 +: e.features) }
-    val initialWeights = trainingData.head.features.map { f => math.random }
+    val trainingData = examples.par.map { e => e.copy(features = 1.0 +: e.features) }
     var weights = trainingData.head.features.map { f => math.random }
     for (epoch <- 1 to epochs) {
-      if (epoch % 10 == 0) {
+      if (epoch % 20 == 0) {
         println("Starting epoch " + epoch)
-        val totalError = examples.map { e =>
+        val totalError = trainingData.map { e =>
           val guess = sigmoid(weights, e.features)
           val answer = transformLabel(e.label.get)
-          answer * math.log(guess) + (1 - answer) * math.log(1 - guess)
+          //answer * math.log(guess) + (1 - answer) * math.log(1 - guess)
+          val t = (if (guess > 0.5) 1 else 0)
+          if (t == answer) 1 else 0
         }.sum / examples.size.toDouble
 
         println("Error " + totalError)
@@ -45,13 +47,12 @@ class LogisticRegressionTrainer(
       weights = update(trainingData, weights, learningRate(epoch), regularization)
     }
 
-    println(initialWeights)
     println(weights)
     new LogisticRegressionClassifier(weights)
   }
 
   private def update(
-    examples: Vector[TrainingExample[Double]],
+    examples: ParVector[TrainingExample[Double]],
     weights: Vector[Double],
     learningRate: Double,
     regularization: Double): Vector[Double] = {

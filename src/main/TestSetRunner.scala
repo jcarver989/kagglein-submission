@@ -1,6 +1,5 @@
 package main
 
-import data.TestSet
 import data.TrainingExample
 import data.Transformer
 import java.io.File
@@ -15,9 +14,9 @@ class TestSetRunner() {
     val classifier = trainer.train(examples)
 
     println("Classifying...")
-    val test = transformer.transformFeatures(TestSet.fromFile("test.tsv"))
+    val test = transformer.transform(TrainingExample.fromFile("test.tsv"))
     val guesses = test.map { features =>
-      '"' + classifier.classify(features) + '"'
+      '"' + classifier.classify(features.features) + '"'
     }
     val json = s"""
 {

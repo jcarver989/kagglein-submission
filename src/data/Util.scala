@@ -22,7 +22,7 @@ object Util {
     for {
       example <- data
       (feature, index) <- example.features.zipWithIndex
-      if features(index).isNumeric
+      if featureTypes(index) == NumericFeature
     } {
       val n = feature.toDouble
       map(index) = (MinMax(n) + map.getOrElse(index, MinMax(n)))
@@ -43,21 +43,6 @@ object Util {
     }
 
     data.map { example => example.copy(features = normalize(minMaxMap, example.features)) }
-  }
-
-  def normalizeFeatures(data: Vector[Vector[Double]]): Vector[Vector[Double]] = {
-    val minMaxMap = {
-      val map = scala.collection.mutable.Map[Int, MinMax]()
-      for {
-        example <- data
-        (feature, index) <- example.zipWithIndex
-      } {
-        map(index) = (MinMax(feature) + map.getOrElse(index, MinMax(feature)))
-      }
-      map.toMap
-    }
-
-    data.map { features => normalize(minMaxMap, features) }
   }
 
   def normalize(minMaxMap: Map[Int, MinMax], featureValues: Vector[Double]): Vector[Double] = {

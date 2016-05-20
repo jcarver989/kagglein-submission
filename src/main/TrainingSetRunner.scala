@@ -20,7 +20,14 @@ class TrainingSetRunner() {
 
     println("Classifying...")
     val (correct, incorrect) = test
-      .map { case (e, _) => classifier.classify(e.features) == e.label.get }
+      .map {
+        case (e, _) =>
+          val guess = classifier.classify(e.features) 
+          if (guess != e.label.get)  {
+            println(e.features, e.label)
+          }
+          guess == e.label.get
+      }
       .partition { wasCorrect => wasCorrect }
 
     println(correct.size / (correct.size + incorrect.size).toDouble)

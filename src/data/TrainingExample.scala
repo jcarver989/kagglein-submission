@@ -6,22 +6,19 @@ import scala.io.Source
 case class TrainingExample[T](features: Vector[T], label: Option[String] = None)
 
 object TrainingExample {
-  def fromFile(filePath: String): Vector[TrainingExample[String]] = {
+  def fromFile(filePath: String, hasTarget: Boolean = true): Vector[TrainingExample[String]] = {
     val lines = Source.fromFile(filePath).getLines.toVector
-    fromData(lines)
+    fromData(lines, hasTarget)
   }
 
-  def fromData(data: Iterable[String]): Vector[TrainingExample[String]] = {
+  def fromData(data: Iterable[String], hasTarget: Boolean = true): Vector[TrainingExample[String]] = {
     data.map { l =>
       val columns = l.split("\t")
-      TrainingExample(label = Some(columns.last), features = columns.dropRight(1).toVector)
+      if (hasTarget) {
+        TrainingExample(label = Some(columns.last), features = columns.dropRight(1).toVector)
+      } else {
+        TrainingExample(label = None, features = columns.toVector)
+      }
     }.toVector
-  }
-}
-
-object TestSet {
-  def fromFile(filePath: String): Vector[Vector[String]] = {
-    val lines = Source.fromFile(filePath).getLines.toVector
-    lines.map { _.split("\t").toVector }
   }
 }
