@@ -8,7 +8,7 @@ object RunBayes extends App {
   val transformer = new FeatureTransformer(Set(
     sex,
     fnlwgt,
-    educationNum,
+    //educationNum,
     education,
     nativeCountry,
     maritalStatus,

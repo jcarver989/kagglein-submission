@@ -27,14 +27,12 @@ class FeatureTransformer(throwAwayFeatures: Set[Int]) extends Transformer[String
         case (f, i) => f
       }
   }
-  
+
   private def transformEducationNum(num: Int): String = {
-    if (num < 5) {
+    if (num < 10) {
       "0"
-    } else if (num < 10) {
-      "1"
     } else if (num < 15) {
-      "2"
+      "1"
     } else {
       "3"
     }
@@ -60,10 +58,12 @@ class FeatureTransformer(throwAwayFeatures: Set[Int]) extends Transformer[String
   private def transformAge(age: Int): String = {
     if (age < 18) {
       "1"
-    } else if (age > 65) {
+    } else if (age < 37) {
       "2"
-    } else {
+    } else if (age < 65) {
       "3"
+    } else {
+      "4"
     }
   }
 
