@@ -14,7 +14,9 @@ class FeatureTransformer(throwAwayFeatures: Set[Int]) extends Transformer[String
   }
 
   private def transformFeatureVector(featureValues: Vector[String]): Vector[String] = {
-    featureValues.zipWithIndex
+
+    (featureValues :+ (featureValues(capitalGain).toLong - featureValues(capitalLoss).toLong).toString)
+      .zipWithIndex
       .filterNot { case (f, i) => throwAwayFeatures.contains(i) }
       .map {
         case (f, i) if i == education => transformEducation(f)
@@ -22,10 +24,31 @@ class FeatureTransformer(throwAwayFeatures: Set[Int]) extends Transformer[String
         case (f, i) if i == nativeCountry => transformCountry(f)
         case (f, i) if i == maritalStatus => transformMarriage(f)
         case (f, i) if i == educationNum => transformEducationNum(f.toInt)
-        //case (f, i) if i == hoursPerWeek => transformHours(f.toInt)
-        //case (f, i) if i == capitalGain => transformCapitalGain(f.toInt)
+        case (f, i) if i == hoursPerWeek => transformHours(f.toInt)
+        case (f, i) if i == relationship => transformRelationship(f)
+        case (f, i) if i == netGain => transformNetGain(f.toInt)
         case (f, i) => f
       }
+  }
+
+  private def transformRelationship(relationship: String): String = {
+    relationship match {
+      case "Wife" => "Wife"
+      case "Husband" => "Husband"
+      case _ => "Unmarried"
+    }
+  }
+  
+  private def transformNetGain(gain: Int): String = {
+    gain match {
+      case g if g < 0 => "loss"
+      case g if g == 0 => "none"
+      case g if g < 5000 => "5k"
+      case g if g < 10000 => "10k"
+      case g if g < 20000 => "20k"
+      case g if g < 50000 => "50k"
+      case _ => "other"
+    }
   }
 
   private def transformEducationNum(num: Int): String = {
@@ -45,16 +68,6 @@ class FeatureTransformer(throwAwayFeatures: Set[Int]) extends Transformer[String
     }
   }
 
-  private def transformCapitalGain(gain: Int): String = {
-    if (gain < 0) {
-      "1"
-    } else if (gain < 10000) {
-      "2"
-    } else {
-      "3"
-    }
-  }
-
   private def transformAge(age: Int): String = {
     if (age < 18) {
       "1"
@@ -68,9 +81,9 @@ class FeatureTransformer(throwAwayFeatures: Set[Int]) extends Transformer[String
   }
 
   private def transformHours(hours: Int): String = {
-    if (hours < 40) {
+    if (hours < 6) {
       "1"
-    } else if (hours < 60) {
+    } else if (hours < 15) {
       "2"
     } else {
       "3"

@@ -38,6 +38,7 @@ object Features {
   val capitalLoss = 11
   val hoursPerWeek = 12
   val nativeCountry = 13
+  val netGain = 14
 
   val featureTypes = Map(
     age -> NumericFeature,
